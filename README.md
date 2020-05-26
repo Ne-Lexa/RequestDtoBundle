@@ -2,18 +2,18 @@
 
 This Symfony Bundle provides request objects support for Symfony controller actions.
 
-![Packagist Version](https://img.shields.io/packagist/v/nelexa/RequestDtoBundle)
-![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/nelexa/RequestDtoBundle)
+![Packagist Version](https://img.shields.io/packagist/v/nelexa/request-dto-bundle)
+![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/nelexa/request-dto-bundle)
 ![Minimum Symfony Version](https://img.shields.io/badge/Bundle%20for%20Symfony-%5E5.0-blue)
 [![Build Status](https://travis-ci.org/Ne-Lexa/RequestDtoBundle.svg?branch=master)](https://travis-ci.org/Ne-Lexa/RequestDtoBundle)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/?branch=master)
-![Packagist License](https://img.shields.io/packagist/l/nelexa/RequestDtoBundle)
+![Packagist License](https://img.shields.io/packagist/l/nelexa/request-dto-bundle)
 
 # Installation
 Require the bundle with composer:
 ```bash
-composer require nelexa/RequestDtoBundle
+composer require nelexa/request-dto-bundle
 ```
 
 # Examples of using
