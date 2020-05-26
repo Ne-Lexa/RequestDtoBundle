@@ -1,0 +1,22 @@
+language: php
+php:
+    - '7.4'
+
+cache:
+    directories:
+        - vendor
+        - $HOME/.composer/cache
+
+install:
+    - travis_retry composer self-update && composer --version
+    - travis_retry composer install --no-interaction
+
+script:
+    - composer validate --no-check-lock
+    - vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover=coverage.clover
+    - composer require --dev friendsofphp/php-cs-fixer
+    - ./vendor/bin/php-cs-fixer fix --config=.php_cs -v --diff --dry-run
+
+after_success:
+    - wget https://scrutinizer-ci.com/ocular.phar
+    - php ocular.phar code-coverage:upload --format=php-clover coverage.clover

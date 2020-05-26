@@ -1,0 +1,52 @@
+{
+    "name": "nelexa/request-dto-bundle",
+    "type": "symfony-bundle",
+    "description": "This Symfony Bundle provides request objects support for Symfony controller actions",
+    "keywords": [
+        "request", "bundle", "dto"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^7.4",
+        "symfony/dependency-injection": "^5.0",
+        "symfony/http-kernel": "^5.0",
+        "symfony/property-access": "^5.0",
+        "symfony/property-info": "^5.0",
+        "symfony/serializer": "^5.0",
+        "symfony/validator": "^5.0"
+    },
+    "require-dev": {
+        "ext-json": "*",
+        "doctrine/annotations": "^1.10",
+        "friendsofphp/php-cs-fixer": "^2.16",
+        "symfony/framework-bundle": "^5.0",
+        "symfony/test-pack": "^1.0",
+        "symfony/var-dumper": "^5.0"
+    },
+    "conflict": {
+        "symfony/framework-bundle": "<5.0.0"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "Nelexa\\RequestDtoBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Nelexa\\RequestDtoBundle\\Tests\\": "tests/",
+            "Nelexa\\RequestDtoBundle\\Examples\\": "examples/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/simple-phpunit",
+        "php:fix": "php .php_cs --force",
+        "php:fix:debug": "php .php_cs"
+    },
+    "suggest": {
+        "doctrine/annotations": "For support @Assert annotations"
+    },
+    "minimum-stability": "stable"
+}
