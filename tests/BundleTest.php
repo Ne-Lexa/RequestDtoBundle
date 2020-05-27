@@ -20,6 +20,8 @@ final class BundleTest extends KernelTestCase
      * @dataProvider provideQueryObjects
      * @dataProvider provideRequestObjectBody
      *
+     * @param mixed $responseData
+     *
      * @throws \Throwable
      */
     public function testRequestAndQueryObjects(
@@ -27,7 +29,7 @@ final class BundleTest extends KernelTestCase
         array $headers,
         int $responseStatusCode,
         string $contentType,
-        ?array $responseData
+        $responseData
     ): void {
         $kernel = self::bootKernel();
 
@@ -40,12 +42,14 @@ final class BundleTest extends KernelTestCase
         self::assertNotFalse($response->getContent());
         self::assertSame($contentType, $response->headers->get('Content-Type'));
 
-        if ($responseData !== null) {
+        if (\is_array($responseData)) {
             $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 
             foreach ($responseData as $key => $value) {
                 self::assertSame($json[$key], $value);
             }
+        } elseif (\is_string($responseData)) {
+            self::assertSame($response->getContent(), $responseData);
         }
     }
 
@@ -471,23 +475,27 @@ final class BundleTest extends KernelTestCase
             ],
         ];
 
-        yield 'Invalid Request Xml Body without ConstraintViolationList' => [
+        yield 'Valid Request Xml Body without ConstraintViolationList' => [
             Request::create(
-                '/user-token-exception',
+                '/user-token',
                 'POST',
                 [],
                 [],
                 [],
                 [],
-                '<request><token></token></request>'
+                '<?xml version="1.0" encoding="UTF-8"?>
+<request>
+    <token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token>
+</request>'
             ),
             [
-                'Content-Type' => 'application/xml',
-                'Accept' => 'application/xml',
+                'Content-Type' => 'text/xml',
+                'Accept' => 'text/xml',
             ],
-            400,
-            'application/problem+xml',
-            null,
+            200,
+            'text/xml; charset=UTF-8',
+            '<?xml version="1.0"?>' . "\n"
+            . '<response><dto><token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token></dto><errors><type>https://symfony.com/errors/validation</type><title>Validation Failed</title><violations/></errors></response>' . "\n",
         ];
     }
 
@@ -616,33 +624,6 @@ final class BundleTest extends KernelTestCase
                 ],
             ]
         );
-    }
-
-    public function testXmlBody(): void
-    {
-        $kernel = self::bootKernel();
-        $request = Request::create(
-            '/user-token',
-            'POST',
-            [],
-            [],
-            [],
-            [],
-            '<?xml version="1.0" encoding="UTF-8"?>
-<request>
-    <token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token>
-</request>'
-        );
-
-        $request->headers->set('Accept', 'text/xml');
-        $request->headers->set('Content-Type', 'application/xml');
-        $response = $kernel->handle($request);
-        self::assertSame($response->getStatusCode(), 200);
-
-        $actualContent = '<?xml version="1.0"?>' . "\n"
-            . '<response><dto><token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token></dto><errors><type>https://symfony.com/errors/validation</type><title>Validation Failed</title><violations/></errors></response>' . "\n";
-
-        self::assertSame($response->getContent(), $actualContent);
     }
 
     /**
