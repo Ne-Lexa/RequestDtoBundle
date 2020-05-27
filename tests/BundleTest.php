@@ -7,7 +7,6 @@ namespace Nelexa\RequestDtoBundle\Tests;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\VarExporter\VarExporter;
 
 /**
  * @internal
@@ -46,7 +45,6 @@ final class BundleTest extends KernelTestCase
 
         if (\is_array($responseData)) {
             $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
-            echo VarExporter::export($json);
 
             foreach ($responseData as $key => $value) {
                 self::assertSame($json[$key], $value);
