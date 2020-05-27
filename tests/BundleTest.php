@@ -19,6 +19,7 @@ final class BundleTest extends KernelTestCase
      * @dataProvider provideRequestObjects
      * @dataProvider provideQueryObjects
      * @dataProvider provideRequestObjectBody
+     * @dataProvider provideConstructRequestObjects
      *
      * @param mixed $responseData
      *
@@ -496,6 +497,192 @@ final class BundleTest extends KernelTestCase
             'text/xml; charset=UTF-8',
             '<?xml version="1.0"?>' . "\n"
             . '<response><dto><token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token></dto><errors><type>https://symfony.com/errors/validation</type><title>Validation Failed</title><violations/></errors></response>' . "\n",
+        ];
+    }
+
+    public function provideConstructRequestObjects()
+    {
+        yield 'Valid Construct Request Object with ConstraintViolationList' => [
+            Request::create(
+                '/construct/request',
+                'POST',
+                [
+                    's' => 'this is string',
+                    'i' => '333',
+                    'b' => '1',
+                    'f' => '0.3141',
+                    'a' => [
+                        'value 1',
+                        'value 2',
+                        'value 3',
+                    ],
+                ],
+            ),
+            [
+                'Accept' => 'application/json',
+            ],
+            200,
+            'application/json',
+            [
+                'dto' => [
+                    'string' => 'this is string',
+                    'integer' => 333,
+                    'boolean' => true,
+                    'float' => 0.3141,
+                    'array' => [
+                        'value 1',
+                        'value 2',
+                        'value 3',
+                    ],
+                ],
+                'errors' => [
+                    'type' => 'https://symfony.com/errors/validation',
+                    'title' => 'Validation Failed',
+                    'violations' => [],
+                ],
+            ],
+        ];
+
+        yield 'Invalid Construct Request Object with ConstraintViolationList' => [
+            Request::create(
+                '/construct/request',
+                'POST',
+                [
+                    's' => 'this is string',
+                    'i' => '123456789',
+                    'f' => '99',
+                ],
+            ),
+            [
+                'Accept' => 'application/json',
+            ],
+            200,
+            'application/json',
+            [
+                'dto' => [
+                    'string' => 'this is string',
+                    'integer' => 123456789,
+                    'boolean' => false,
+                    'float' => 99,
+                    'array' => [],
+                ],
+                'errors' => [
+                    'type' => 'https://symfony.com/errors/validation',
+                    'title' => 'Validation Failed',
+                    'detail' => 'integer: This value should be between 100 and 500.' . "\n"
+                        . 'boolean: This value should be true.' . "\n"
+                        . 'array: This value should not be blank.',
+                    'violations' => [
+                        [
+                            'propertyPath' => 'integer',
+                            'title' => 'This value should be between 100 and 500.',
+                            'parameters' => [
+                                '{{ value }}' => '123456789',
+                                '{{ min }}' => '100',
+                                '{{ max }}' => '500',
+                            ],
+                            'type' => 'urn:uuid:04b91c99-a946-4221-afc5-e65ebac401eb',
+                        ],
+                        [
+                            'propertyPath' => 'boolean',
+                            'title' => 'This value should be true.',
+                            'parameters' => [
+                                '{{ value }}' => 'false',
+                            ],
+                            'type' => 'urn:uuid:2beabf1c-54c0-4882-a928-05249b26e23b',
+                        ],
+                        [
+                            'propertyPath' => 'array',
+                            'title' => 'This value should not be blank.',
+                            'parameters' => [
+                                '{{ value }}' => 'array',
+                            ],
+                            'type' => 'urn:uuid:c1051bb4-d103-4f74-8988-acbcafc7fdc3',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        yield 'Valid Construct Request Object without ConstraintViolationList' => [
+            Request::create(
+                '/construct/request/exception',
+                'POST',
+                [
+                    's' => 'this is string',
+                    'i' => '333',
+                    'b' => '1',
+                    'f' => '0.3141',
+                    'a' => [
+                        'value 1',
+                        'value 2',
+                        'value 3',
+                    ],
+                ],
+            ),
+            [
+                'Accept' => 'application/json',
+            ],
+            200,
+            'application/json',
+            [
+                'string' => 'this is string',
+                'integer' => 333,
+                'boolean' => true,
+                'float' => 0.3141,
+                'array' => [
+                    'value 1',
+                    'value 2',
+                    'value 3',
+                ],
+            ],
+        ];
+
+        yield 'Invalid Construct Request Object without ConstraintViolationList' => [
+            Request::create(
+                '/construct/request/exception',
+                'POST',
+                [
+                    's' => 'this is string',
+                    'a' => [
+                        'value 1',
+                        'value 2',
+                        'value 3',
+                    ],
+                ],
+            ),
+            [
+                'Accept' => 'application/json',
+            ],
+            400,
+            'application/problem+json',
+            [
+                'type' => 'https://tools.ietf.org/html/rfc7807',
+                'title' => 'Validation Failed',
+                'detail' => 'integer: This value should be between 100 and 500.' . "\n"
+                    . 'boolean: This value should be true.',
+                'violations' => [
+                    [
+                        'propertyPath' => 'integer',
+                        'title' => 'This value should be between 100 and 500.',
+                        'parameters' => [
+                            '{{ value }}' => '0',
+                            '{{ min }}' => '100',
+                            '{{ max }}' => '500',
+                        ],
+                        'type' => 'urn:uuid:04b91c99-a946-4221-afc5-e65ebac401eb',
+                    ],
+                    [
+                        'propertyPath' => 'boolean',
+                        'title' => 'This value should be true.',
+                        'parameters' => [
+                            '{{ value }}' => 'false',
+                        ],
+                        'type' => 'urn:uuid:2beabf1c-54c0-4882-a928-05249b26e23b',
+                    ],
+                ],
+                'status' => 400,
+            ],
         ];
     }
 

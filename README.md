@@ -17,10 +17,11 @@ composer require nelexa/request-dto-bundle
 ```
 
 # Examples of using
-To specify an object as an argument of a controller action, an object must implement one of 3 interfaces:
+To specify an object as an argument of a controller action, an object must implement one of 4 interfaces:
 - `\Nelexa\RequestDtoBundle\Dto\QyeryObjectInterface` query parameters for GET or HEAD request methods.
 - `\Nelexa\RequestDtoBundle\Dto\RequestObjectInterface` request parameters for POST, PUT or DELETE request methods (ex. Content-Type: application/x-www-form-urlencoded) or query parameters for GET and HEAD request methods.
 - `\Nelexa\RequestDtoBundle\Dto\RequestBodyObjectInterface` for POST, PUT, DELETE request body contents (ex. Content-Type: application/json).
+- `\Nelexa\RequestDtoBundle\Dto\ConstructRequestObjectInterface` for mapping a request for a data transfer object in the class constructor.
 
 Create request DTO:
 ```php
@@ -147,6 +148,63 @@ Content response:
             "type": "urn:uuid:c1051bb4-d103-4f74-8988-acbcafc7fdc3"
         }
     ]
+}
+```
+#### Construct DTO from Request (version 1.1.0+)
+```php
+use Nelexa\RequestDtoBundle\Dto\ConstructRequestObjectInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
+
+class ExampleDTO implements ConstructRequestObjectInterface
+{
+    /** @Assert\Range(min=1) */
+    private int $page;
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\Regex("~^\d{10,13}$~", message="Invalid phone number")
+     */
+    private string $phone;
+
+    public function __construct(Request $request)
+    {
+        $this->page = $request->request->getInt('p', 1);
+
+        // sanitize phone number
+        $phone = (string) $request->request->get('phone');
+        $phone = preg_replace('~\D~', '', $phone);
+        $this->phone = (string) $phone;
+    }
+
+    public function getPage(): int
+    {
+        return $this->page;
+    }
+
+    public function getPhone(): string
+    {
+        return $this->phone;
+    }
+}
+
+class AppController extends AbstractController
+{
+    public function exampleAction(
+        ExampleDTO $dto,
+        ConstraintViolationListInterface $errors
+    ): Response {
+        $data = [
+            'page' => $dto->getPage(),
+            'phone' => $dto->getPhone(),
+            'errors' => $errors,
+        ];
+
+        return $this->json($data, $errors->count() === 0 ? 200 : 400);
+    }
 }
 ```
 
