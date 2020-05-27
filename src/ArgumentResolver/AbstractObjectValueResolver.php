@@ -7,6 +7,8 @@ namespace Nelexa\RequestDtoBundle\ArgumentResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -25,11 +27,11 @@ abstract class AbstractObjectValueResolver implements ArgumentValueResolverInter
         $this->validator = $validator;
     }
 
-    abstract protected function serialize(Request $request, ArgumentMetadata $argument): object;
+    abstract protected function serialize(Request $request, ArgumentMetadata $argument, string $format): object;
 
     protected function getSerializeFormat(Request $request): string
     {
-        static $supportFormats = ['json', 'xml', 'yaml', 'csv'];
+        static $supportFormats = ['json', 'xml'];
         static $defaultFormat = 'json';
 
         $format = $request->getContentType() ?? $defaultFormat;
@@ -46,12 +48,26 @@ abstract class AbstractObjectValueResolver implements ArgumentValueResolverInter
      */
     public function resolve(Request $request, ArgumentMetadata $argument)
     {
-        $obj = $this->serialize($request, $argument);
-        $violationList = $this->validator->validate($obj);
+        $format = $this->getSerializeFormat($request);
+
+        try {
+            $obj = $this->serialize($request, $argument, $format);
+        } catch (\TypeError | NotEncodableValueException $e) {
+            $problemMimeType = 'application/problem+' . $format;
+
+            throw new HttpException(
+                400,
+                'Bad Request',
+                $e,
+                [
+                    'Content-Type' => $problemMimeType,
+                ]
+            );
+        }
 
         $request->attributes->set(
             ConstraintViolationListValueResolver::REQUEST_ATTR_KEY,
-            $violationList
+            $this->validator->validate($obj)
         );
 
         yield $obj;

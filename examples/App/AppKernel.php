@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nelexa\RequestDtoBundle\Examples\App;
 
+use Nelexa\RequestDtoBundle\Examples\Dto\LimitQueryRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\SearchQueryRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\UserRegistrationRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\UserTokenRequest;
@@ -58,6 +59,7 @@ class AppKernel extends Kernel
         $routes->add('/user-token-exception', 'kernel::userTokenExceptionAction');
         $routes->add('/errors', 'kernel::constraintViolationListAction');
         $routes->add('/multiple/objects', 'kernel::multipleObjects')->setMethods(['POST']);
+        $routes->add('/limit', 'kernel::limitAction');
     }
 
     /**
@@ -196,5 +198,19 @@ class AppKernel extends Kernel
         ];
 
         return $this->serializeResponse($request, $data);
+    }
+
+    public function limitAction(
+        Request $request,
+        LimitQueryRequest $limitRequest,
+        ?ConstraintViolationListInterface $errors
+    ): Response {
+        return $this->serializeResponse(
+            $request,
+            [
+                'dto' => $limitRequest,
+                'errors' => $errors,
+            ]
+        );
     }
 }
