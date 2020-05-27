@@ -7,6 +7,7 @@ namespace Nelexa\RequestDtoBundle\ArgumentResolver;
 use Nelexa\RequestDtoBundle\Dto\QueryObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
 class QueryObjectValueResolver extends AbstractObjectValueResolver
 {
@@ -15,12 +16,20 @@ class QueryObjectValueResolver extends AbstractObjectValueResolver
         return is_a($argument->getType(), QueryObjectInterface::class, true);
     }
 
-    protected function serialize(Request $request, ArgumentMetadata $argument): object
+    protected function serialize(Request $request, ArgumentMetadata $argument, string $format): object
     {
         return $this->serializer->denormalize(
-            $request->query->all(),
+            $this->getData($request),
             $argument->getType(),
-            $this->getSerializeFormat($request)
+            $format,
+            [
+                AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true,
+            ]
         );
+    }
+
+    protected function getData(Request $request): array
+    {
+        return $request->query->all();
     }
 }

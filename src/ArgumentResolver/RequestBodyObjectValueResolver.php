@@ -7,8 +7,7 @@ namespace Nelexa\RequestDtoBundle\ArgumentResolver;
 use Nelexa\RequestDtoBundle\Dto\RequestBodyObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\Serializer\Exception\NotEncodableValueException;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
 final class RequestBodyObjectValueResolver extends AbstractObjectValueResolver
 {
@@ -17,23 +16,15 @@ final class RequestBodyObjectValueResolver extends AbstractObjectValueResolver
         return is_a($argument->getType(), RequestBodyObjectInterface::class, true);
     }
 
-    protected function serialize(Request $request, ArgumentMetadata $argument): object
+    protected function serialize(Request $request, ArgumentMetadata $argument, string $format): object
     {
-        try {
-            return $this->serializer->deserialize(
-                $request->getContent(),
-                $argument->getType(),
-                $this->getSerializeFormat($request)
-            );
-        } catch (NotEncodableValueException $e) {
-            throw new HttpException(
-                400,
-                'Bad Request',
-                $e,
-                [
-                    'Content-Type' => 'application/problem+json',
-                ]
-            );
-        }
+        return $this->serializer->deserialize(
+            $request->getContent(),
+            $argument->getType(),
+            $format,
+            [
+                AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true,
+            ]
+        );
     }
 }

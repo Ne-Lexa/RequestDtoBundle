@@ -33,9 +33,9 @@ class RequestDtoExtension extends Extension
 
     private function registerArgumentResolvers(ContainerBuilder $container): void
     {
-        $this->registerArgumentResolver($container, RequestBodyObjectValueResolver::class, 40);
+        $this->registerArgumentResolver($container, RequestBodyObjectValueResolver::class, 45);
         $this->registerArgumentResolver($container, RequestObjectValueResolver::class, 40);
-        $this->registerArgumentResolver($container, QueryObjectValueResolver::class, 40);
+        $this->registerArgumentResolver($container, QueryObjectValueResolver::class, 35);
         $this->registerArgumentResolver($container, ConstraintViolationListValueResolver::class, -40);
     }
 

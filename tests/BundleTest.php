@@ -20,6 +20,8 @@ final class BundleTest extends KernelTestCase
      * @dataProvider provideQueryObjects
      * @dataProvider provideRequestObjectBody
      *
+     * @param mixed $responseData
+     *
      * @throws \Throwable
      */
     public function testRequestAndQueryObjects(
@@ -27,7 +29,7 @@ final class BundleTest extends KernelTestCase
         array $headers,
         int $responseStatusCode,
         string $contentType,
-        array $responseData
+        $responseData
     ): void {
         $kernel = self::bootKernel();
 
@@ -40,10 +42,14 @@ final class BundleTest extends KernelTestCase
         self::assertNotFalse($response->getContent());
         self::assertSame($contentType, $response->headers->get('Content-Type'));
 
-        $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        if (\is_array($responseData)) {
+            $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 
-        foreach ($responseData as $key => $value) {
-            self::assertSame($json[$key], $value);
+            foreach ($responseData as $key => $value) {
+                self::assertSame($json[$key], $value);
+            }
+        } elseif (\is_string($responseData)) {
+            self::assertSame($response->getContent(), $responseData);
         }
     }
 
@@ -430,7 +436,7 @@ final class BundleTest extends KernelTestCase
             ],
         ];
 
-        yield 'Invalid Request Body without ConstraintViolationList' => [
+        yield 'Invalid Request Json Body without ConstraintViolationList' => [
             Request::create(
                 '/user-token-exception',
                 'POST',
@@ -467,6 +473,29 @@ final class BundleTest extends KernelTestCase
                 ],
                 'status' => 400,
             ],
+        ];
+
+        yield 'Valid Request Xml Body without ConstraintViolationList' => [
+            Request::create(
+                '/user-token',
+                'POST',
+                [],
+                [],
+                [],
+                [],
+                '<?xml version="1.0" encoding="UTF-8"?>
+<request>
+    <token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token>
+</request>'
+            ),
+            [
+                'Content-Type' => 'text/xml',
+                'Accept' => 'text/xml',
+            ],
+            200,
+            'text/xml; charset=UTF-8',
+            '<?xml version="1.0"?>' . "\n"
+            . '<response><dto><token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token></dto><errors><type>https://symfony.com/errors/validation</type><title>Validation Failed</title><violations/></errors></response>' . "\n",
         ];
     }
 
@@ -597,33 +626,6 @@ final class BundleTest extends KernelTestCase
         );
     }
 
-    public function testXmlBody(): void
-    {
-        $kernel = self::bootKernel();
-        $request = Request::create(
-            '/user-token',
-            'POST',
-            [],
-            [],
-            [],
-            [],
-            '<?xml version="1.0" encoding="UTF-8"?>
-<request>
-    <token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token>
-</request>'
-        );
-
-        $request->headers->set('Accept', 'text/xml');
-        $request->headers->set('Content-Type', 'application/xml');
-        $response = $kernel->handle($request);
-        self::assertSame($response->getStatusCode(), 200);
-
-        $actualContent = '<?xml version="1.0"?>' . "\n"
-            . '<response><dto><token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token></dto><errors><type>https://symfony.com/errors/validation</type><title>Validation Failed</title><violations/></errors></response>' . "\n";
-
-        self::assertSame($response->getContent(), $actualContent);
-    }
-
     /**
      * @throws \Exception
      */
@@ -704,5 +706,75 @@ final class BundleTest extends KernelTestCase
                 ],
             ],
         ];
+    }
+
+    public function testScalarCastTyped(): void
+    {
+        $kernel = self::bootKernel();
+        $data = [
+            'offset' => '-4',
+            'limit' => '20',
+            'collapse' => '1',
+            'freq' => '0.0433',
+            'array' => [
+                'str',
+                '332',
+                '33.2332',
+            ],
+        ];
+        $request = Request::create(
+            '/limit',
+            Request::METHOD_POST,
+            $data
+        );
+        $request->headers->set('Accept', 'application/json');
+        $response = $kernel->handle($request);
+
+        $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame($response->getStatusCode(), 200);
+        self::assertSame(
+            $json,
+            [
+                'dto' => [
+                    'offset' => -4,
+                    'limit' => 20,
+                    'collapse' => true,
+                    'freq' => 0.0433,
+                    'array' => [
+                        'str',
+                        '332',
+                        '33.2332',
+                    ],
+                ],
+                'errors' => null,
+            ]
+        );
+    }
+
+    public function testErrorTyped(): void
+    {
+        $kernel = self::bootKernel();
+        $data = [
+            'offset' => 'a',
+        ];
+        $request = Request::create(
+            '/limit',
+            Request::METHOD_GET,
+            $data
+        );
+        $request->headers->set('Accept', 'application/json');
+        $response = $kernel->handle($request);
+
+        $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame($response->headers->get('Content-Type'), 'application/problem+json');
+        self::assertSame($response->getStatusCode(), 400);
+        self::assertSame($json['status'], 400);
+        self::assertSame($json['type'], 'https://tools.ietf.org/html/rfc2616#section-10');
+        self::assertSame($json['title'], 'An error occurred');
+        self::assertSame($json['detail'], 'Bad Request');
+
+        if ($kernel->isDebug()) {
+            self::assertSame($json['class'], HttpException::class);
+        }
     }
 }

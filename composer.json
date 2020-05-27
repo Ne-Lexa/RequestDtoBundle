@@ -3,7 +3,9 @@
     "type": "symfony-bundle",
     "description": "This Symfony Bundle provides request objects support for Symfony controller actions",
     "keywords": [
-        "request", "bundle", "dto"
+        "request",
+        "bundle",
+        "dto"
     ],
     "license": "MIT",
     "require": {
@@ -17,6 +19,7 @@
     },
     "require-dev": {
         "ext-json": "*",
+        "ext-simplexml": "*",
         "doctrine/annotations": "^1.10",
         "friendsofphp/php-cs-fixer": "^2.16",
         "symfony/framework-bundle": "^5.0",
