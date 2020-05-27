@@ -21,7 +21,6 @@
         "ext-json": "*",
         "ext-simplexml": "*",
         "doctrine/annotations": "^1.10",
-        "friendsofphp/php-cs-fixer": "^2.16",
         "symfony/framework-bundle": "^5.0",
         "symfony/test-pack": "^1.0",
         "symfony/var-dumper": "^5.0"

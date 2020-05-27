@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nelexa\RequestDtoBundle\Examples\App;
 
 use Nelexa\RequestDtoBundle\Examples\Dto\LimitQueryRequest;
+use Nelexa\RequestDtoBundle\Examples\Dto\ObjectFromRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\SearchQueryRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\UserRegistrationRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\UserTokenRequest;
@@ -58,8 +59,13 @@ class AppKernel extends Kernel
         $routes->add('/user-token', 'kernel::userTokenAction');
         $routes->add('/user-token-exception', 'kernel::userTokenExceptionAction');
         $routes->add('/errors', 'kernel::constraintViolationListAction');
-        $routes->add('/multiple/objects', 'kernel::multipleObjects')->setMethods(['POST']);
+        $routes->add('/multiple/objects', 'kernel::multipleObjects')
+            ->setMethods(['POST']);
         $routes->add('/limit', 'kernel::limitAction');
+        $routes->add('/construct/request', 'kernel::constructRequestAction')
+            ->setMethods(['POST']);
+        $routes->add('/construct/request/exception', 'kernel::constructRequestExceptionAction')
+            ->setMethods(['POST']);
     }
 
     /**
@@ -211,6 +217,30 @@ class AppKernel extends Kernel
                 'dto' => $limitRequest,
                 'errors' => $errors,
             ]
+        );
+    }
+
+    public function constructRequestAction(
+        Request $request,
+        ObjectFromRequest $dto,
+        ConstraintViolationListInterface $errors
+    ): Response {
+        return $this->serializeResponse(
+            $request,
+            [
+                'dto' => $dto,
+                'errors' => $errors,
+            ]
+        );
+    }
+
+    public function constructRequestExceptionAction(
+        Request $request,
+        ObjectFromRequest $dto
+    ): Response {
+        return $this->serializeResponse(
+            $request,
+            $dto
         );
     }
 }
