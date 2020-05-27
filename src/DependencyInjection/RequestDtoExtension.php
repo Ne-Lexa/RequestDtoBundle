@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nelexa\RequestDtoBundle\DependencyInjection;
 
 use Nelexa\RequestDtoBundle\ArgumentResolver\ConstraintViolationListValueResolver;
+use Nelexa\RequestDtoBundle\ArgumentResolver\ConstructRequestObjectValueResolver;
 use Nelexa\RequestDtoBundle\ArgumentResolver\QueryObjectValueResolver;
 use Nelexa\RequestDtoBundle\ArgumentResolver\RequestBodyObjectValueResolver;
 use Nelexa\RequestDtoBundle\ArgumentResolver\RequestObjectValueResolver;
@@ -33,9 +34,10 @@ class RequestDtoExtension extends Extension
 
     private function registerArgumentResolvers(ContainerBuilder $container): void
     {
-        $this->registerArgumentResolver($container, RequestBodyObjectValueResolver::class, 45);
-        $this->registerArgumentResolver($container, RequestObjectValueResolver::class, 40);
-        $this->registerArgumentResolver($container, QueryObjectValueResolver::class, 35);
+        $this->registerArgumentResolver($container, ConstructRequestObjectValueResolver::class, 45);
+        $this->registerArgumentResolver($container, RequestBodyObjectValueResolver::class, 40);
+        $this->registerArgumentResolver($container, RequestObjectValueResolver::class, 35);
+        $this->registerArgumentResolver($container, QueryObjectValueResolver::class, 30);
         $this->registerArgumentResolver($container, ConstraintViolationListValueResolver::class, -40);
     }
 
