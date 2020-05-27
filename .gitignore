@@ -2,5 +2,6 @@
 /vendor/
 /.idea
 *.cache
+*.clover
 /phpunit.xml
 /var

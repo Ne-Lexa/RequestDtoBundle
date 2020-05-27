@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nelexa\RequestDtoBundle\Tests;
 
-use Nelexa\RequestDtoBundle\Exception\RequestDtoValidationException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -28,7 +27,7 @@ final class BundleTest extends KernelTestCase
         array $headers,
         int $responseStatusCode,
         string $contentType,
-        array $responseData
+        ?array $responseData
     ): void {
         $kernel = self::bootKernel();
 
@@ -41,10 +40,12 @@ final class BundleTest extends KernelTestCase
         self::assertNotFalse($response->getContent());
         self::assertSame($contentType, $response->headers->get('Content-Type'));
 
-        $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        if ($responseData !== null) {
+            $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 
-        foreach ($responseData as $key => $value) {
-            self::assertSame($json[$key], $value);
+            foreach ($responseData as $key => $value) {
+                self::assertSame($json[$key], $value);
+            }
         }
     }
 
@@ -431,7 +432,7 @@ final class BundleTest extends KernelTestCase
             ],
         ];
 
-        yield 'Invalid Request Body without ConstraintViolationList' => [
+        yield 'Invalid Request Json Body without ConstraintViolationList' => [
             Request::create(
                 '/user-token-exception',
                 'POST',
@@ -468,6 +469,25 @@ final class BundleTest extends KernelTestCase
                 ],
                 'status' => 400,
             ],
+        ];
+
+        yield 'Invalid Request Xml Body without ConstraintViolationList' => [
+            Request::create(
+                '/user-token-exception',
+                'POST',
+                [],
+                [],
+                [],
+                [],
+                '<request><token></token></request>'
+            ),
+            [
+                'Content-Type' => 'application/xml',
+                'Accept' => 'application/xml',
+            ],
+            400,
+            'application/problem+xml',
+            null,
         ];
     }
 
@@ -623,48 +643,6 @@ final class BundleTest extends KernelTestCase
             . '<response><dto><token>7AtSV5KFjsTdiEwW6RC59v8iWs0iLm7o</token></dto><errors><type>https://symfony.com/errors/validation</type><title>Validation Failed</title><violations/></errors></response>' . "\n";
 
         self::assertSame($response->getContent(), $actualContent);
-    }
-
-    public function testInvalidXmlBody(): void
-    {
-        $kernel = self::bootKernel();
-        $request = Request::create(
-            '/user-token-exception',
-            'POST',
-            [],
-            [],
-            [],
-            [],
-            '<?xml version="1.0" encoding="UTF-8"?>
-<request>
-    <token></token>
-</request>'
-        );
-
-        $request->headers->set('Accept', 'text/xml');
-        $request->headers->set('Content-Type', 'application/xml');
-        $response = $kernel->handle($request);
-
-        self::assertSame($response->getStatusCode(), 400);
-        self::assertSame($response->headers->get('Content-Type'), 'application/problem+xml');
-
-        $xmlResponse = $response->getContent();
-
-        if (\extension_loaded('simplexml')) {
-            $dom = simplexml_load_string($xmlResponse);
-            self::assertSame((string) $dom->type, 'https://tools.ietf.org/html/rfc7807');
-            self::assertSame((string) $dom->title, 'Validation Failed');
-            self::assertSame((string) $dom->detail, 'token: This value should not be blank.');
-            self::assertSame((string) $dom->violations->propertyPath, 'token');
-            self::assertSame((string) $dom->violations->title, 'This value should not be blank.');
-            self::assertSame((string) $dom->violations->parameters->item->attributes()['key'], '{{ value }}');
-            self::assertSame((string) $dom->violations->parameters->item, '""');
-            self::assertSame((string) $dom->violations->type, 'urn:uuid:c1051bb4-d103-4f74-8988-acbcafc7fdc3');
-
-            if ($kernel->isDebug()) {
-                self::assertSame((string) $dom->class, RequestDtoValidationException::class);
-            }
-        }
     }
 
     /**
