@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Nelexa\RequestDtoBundle\EventListener;
 
 use Nelexa\RequestDtoBundle\Exception\RequestDtoValidationException;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -32,13 +32,12 @@ final class RequestDtoExceptionListener
                 $format = 'json';
             }
 
-            $responseObject = $this->serializer->serialize($exception, $format);
+            $responseObject = (string) $this->serializer->serialize($exception, $format);
             $event->setResponse(
-                new JsonResponse(
+                new Response(
                     $responseObject,
                     $exception->getStatusCode(),
-                    [...$exception->getHeaders(), 'Content-Type' => 'application/problem+' . $format],
-                    true
+                    [...$exception->getHeaders(), 'Content-Type' => 'application/problem+' . $format]
                 )
             );
         }

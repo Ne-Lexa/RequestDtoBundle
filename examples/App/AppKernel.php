@@ -43,9 +43,6 @@ class AppKernel extends Kernel
                 'validation' => [
                     'enabled' => true,
                 ],
-                'session' => [
-                    'enabled' => true,
-                ],
             ]
         );
         $c->setParameter('locale', 'en');
