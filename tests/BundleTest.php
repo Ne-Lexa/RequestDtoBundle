@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nelexa\RequestDtoBundle\Tests;
 
+use Nelexa\RequestDtoBundle\Exception\RequestDtoValidationException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -624,6 +625,48 @@ final class BundleTest extends KernelTestCase
         self::assertSame($response->getContent(), $actualContent);
     }
 
+    public function testInvalidXmlBody(): void
+    {
+        $kernel = self::bootKernel();
+        $request = Request::create(
+            '/user-token-exception',
+            'POST',
+            [],
+            [],
+            [],
+            [],
+            '<?xml version="1.0" encoding="UTF-8"?>
+<request>
+    <token></token>
+</request>'
+        );
+
+        $request->headers->set('Accept', 'text/xml');
+        $request->headers->set('Content-Type', 'application/xml');
+        $response = $kernel->handle($request);
+
+        self::assertSame($response->getStatusCode(), 400);
+        self::assertSame($response->headers->get('Content-Type'), 'application/problem+xml');
+
+        $xmlResponse = $response->getContent();
+
+        if (\extension_loaded('simplexml')) {
+            $dom = simplexml_load_string($xmlResponse);
+            self::assertSame((string) $dom->type, 'https://tools.ietf.org/html/rfc7807');
+            self::assertSame((string) $dom->title, 'Validation Failed');
+            self::assertSame((string) $dom->detail, 'token: This value should not be blank.');
+            self::assertSame((string) $dom->violations->propertyPath, 'token');
+            self::assertSame((string) $dom->violations->title, 'This value should not be blank.');
+            self::assertSame((string) $dom->violations->parameters->item->attributes()['key'], '{{ value }}');
+            self::assertSame((string) $dom->violations->parameters->item, '""');
+            self::assertSame((string) $dom->violations->type, 'urn:uuid:c1051bb4-d103-4f74-8988-acbcafc7fdc3');
+
+            if ($kernel->isDebug()) {
+                self::assertSame((string) $dom->class, RequestDtoValidationException::class);
+            }
+        }
+    }
+
     /**
      * @throws \Exception
      */
@@ -704,5 +747,75 @@ final class BundleTest extends KernelTestCase
                 ],
             ],
         ];
+    }
+
+    public function testScalarCastTyped(): void
+    {
+        $kernel = self::bootKernel();
+        $data = [
+            'offset' => '-4',
+            'limit' => '20',
+            'collapse' => '1',
+            'freq' => '0.0433',
+            'array' => [
+                'str',
+                '332',
+                '33.2332',
+            ],
+        ];
+        $request = Request::create(
+            '/limit',
+            Request::METHOD_POST,
+            $data
+        );
+        $request->headers->set('Accept', 'application/json');
+        $response = $kernel->handle($request);
+
+        $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame($response->getStatusCode(), 200);
+        self::assertSame(
+            $json,
+            [
+                'dto' => [
+                    'offset' => -4,
+                    'limit' => 20,
+                    'collapse' => true,
+                    'freq' => 0.0433,
+                    'array' => [
+                        'str',
+                        '332',
+                        '33.2332',
+                    ],
+                ],
+                'errors' => null,
+            ]
+        );
+    }
+
+    public function testErrorTyped(): void
+    {
+        $kernel = self::bootKernel();
+        $data = [
+            'offset' => 'a',
+        ];
+        $request = Request::create(
+            '/limit',
+            Request::METHOD_GET,
+            $data
+        );
+        $request->headers->set('Accept', 'application/json');
+        $response = $kernel->handle($request);
+
+        $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame($response->headers->get('Content-Type'), 'application/problem+json');
+        self::assertSame($response->getStatusCode(), 400);
+        self::assertSame($json['status'], 400);
+        self::assertSame($json['type'], 'https://tools.ietf.org/html/rfc2616#section-10');
+        self::assertSame($json['title'], 'An error occurred');
+        self::assertSame($json['detail'], 'Bad Request');
+
+        if ($kernel->isDebug()) {
+            self::assertSame($json['class'], HttpException::class);
+        }
     }
 }

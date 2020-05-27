@@ -26,13 +26,18 @@ final class RequestDtoExceptionListener
         $exception = $event->getThrowable();
 
         if ($exception instanceof RequestDtoValidationException) {
-            $contentType = 'json';
-            $responseObject = $this->serializer->serialize($exception, $contentType);
+            $format = $event->getRequest()->getContentType() ?? 'json';
+
+            if (!\in_array($format, ['json', 'xml'], true)) {
+                $format = 'json';
+            }
+
+            $responseObject = $this->serializer->serialize($exception, $format);
             $event->setResponse(
                 new JsonResponse(
                     $responseObject,
                     $exception->getStatusCode(),
-                    [...$exception->getHeaders(), 'Content-Type' => 'application/problem+json'],
+                    [...$exception->getHeaders(), 'Content-Type' => 'application/problem+' . $format],
                     true
                 )
             );
