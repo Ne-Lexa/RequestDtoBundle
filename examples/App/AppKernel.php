@@ -44,7 +44,7 @@ class AppKernel extends Kernel
                     'enabled' => true,
                 ],
                 'session' => [
-                    'enabled' => false,
+                    'enabled' => true,
                 ],
             ]
         );
