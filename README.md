@@ -2,13 +2,13 @@
 
 This Symfony Bundle provides request objects support for Symfony controller actions.
 
-![Packagist Version](https://img.shields.io/packagist/v/nelexa/request-dto-bundle)
-![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/nelexa/request-dto-bundle)
+[![Packagist Version](https://img.shields.io/packagist/v/nelexa/request-dto-bundle)](https://packagist.org/packages/nelexa/request-dto-bundle)
+[![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/nelexa/request-dto-bundle)](https://packagist.org/packages/nelexa/request-dto-bundle)
 ![Minimum Symfony Version](https://img.shields.io/badge/Bundle%20for%20Symfony-%5E5.0-blue)
 [![Build Status](https://travis-ci.org/Ne-Lexa/RequestDtoBundle.svg?branch=master)](https://travis-ci.org/Ne-Lexa/RequestDtoBundle)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/?branch=master)
-![Packagist License](https://img.shields.io/packagist/l/nelexa/request-dto-bundle)
+[![Packagist License](https://img.shields.io/packagist/l/nelexa/request-dto-bundle)](https://github.com/Ne-Lexa/RequestDtoBundle/blob/master/LICENSE)
 
 # Installation
 Require the bundle with composer:
@@ -18,7 +18,7 @@ composer require nelexa/request-dto-bundle
 
 # Examples of using
 To specify an object as an argument of a controller action, an object must implement one of 4 interfaces:
-- `\Nelexa\RequestDtoBundle\Dto\QyeryObjectInterface` query parameters for GET or HEAD request methods.
+- `\Nelexa\RequestDtoBundle\Dto\QueryObjectInterface` query parameters for GET or HEAD request methods.
 - `\Nelexa\RequestDtoBundle\Dto\RequestObjectInterface` request parameters for POST, PUT or DELETE request methods (ex. Content-Type: application/x-www-form-urlencoded) or query parameters for GET and HEAD request methods.
 - `\Nelexa\RequestDtoBundle\Dto\RequestBodyObjectInterface` for POST, PUT, DELETE request body contents (ex. Content-Type: application/json).
 - `\Nelexa\RequestDtoBundle\Dto\ConstructRequestObjectInterface` for mapping a request for a data transfer object in the class constructor.

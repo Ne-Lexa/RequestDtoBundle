@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Nelexa\RequestDtoBundle\DependencyInjection;
 
 use Nelexa\RequestDtoBundle\ArgumentResolver\ConstraintViolationListValueResolver;
-use Nelexa\RequestDtoBundle\ArgumentResolver\ConstructRequestObjectValueResolver;
-use Nelexa\RequestDtoBundle\ArgumentResolver\QueryObjectValueResolver;
-use Nelexa\RequestDtoBundle\ArgumentResolver\RequestBodyObjectValueResolver;
-use Nelexa\RequestDtoBundle\ArgumentResolver\RequestObjectValueResolver;
+use Nelexa\RequestDtoBundle\ArgumentResolver\RequestDtoValueResolver;
 use Nelexa\RequestDtoBundle\EventListener\RequestDtoControllerArgumentListener;
 use Nelexa\RequestDtoBundle\EventListener\RequestDtoExceptionListener;
 use Nelexa\RequestDtoBundle\Normalizer\RequestDtoExceptionNormalizer;
+use Nelexa\RequestDtoBundle\Transform\RequestDtoTransform;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -27,24 +25,40 @@ class RequestDtoExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container): void
     {
+        $this->registerTransform($container);
         $this->registerArgumentResolvers($container);
         $this->registerEventListeners($container);
         $this->registerNormalizers($container);
     }
 
+    private function registerTransform(ContainerBuilder $container): void
+    {
+        $definition = new Definition(
+            RequestDtoTransform::class,
+            [
+                new Reference('serializer'),
+            ]
+        );
+        $definition->setPublic(false);
+
+        $container->setDefinition(RequestDtoTransform::class, $definition);
+    }
+
     private function registerArgumentResolvers(ContainerBuilder $container): void
     {
-        $this->registerArgumentResolver($container, ConstructRequestObjectValueResolver::class, 45);
-        $this->registerArgumentResolver($container, RequestBodyObjectValueResolver::class, 40);
-        $this->registerArgumentResolver($container, RequestObjectValueResolver::class, 35);
-        $this->registerArgumentResolver($container, QueryObjectValueResolver::class, 30);
+        $this->registerArgumentResolver($container, RequestDtoValueResolver::class, 40);
         $this->registerArgumentResolver($container, ConstraintViolationListValueResolver::class, -40);
     }
 
     private function registerArgumentResolver(ContainerBuilder $container, string $className, int $priority = 0): void
     {
-        $definition = new Definition($className);
-        $definition->setAutowired(true);
+        $definition = new Definition(
+            $className,
+            [
+                new Reference(RequestDtoTransform::class),
+                new Reference('validator'),
+            ]
+        );
         $definition->setPublic(false);
         $definition->addTag(
             'controller.argument_value_resolver',
@@ -79,8 +93,12 @@ class RequestDtoExtension extends Extension
 
     private function registerExceptionEventListener(ContainerBuilder $container): void
     {
-        $definition = new Definition(RequestDtoExceptionListener::class);
-        $definition->setAutowired(true);
+        $definition = new Definition(
+            RequestDtoExceptionListener::class,
+            [
+                new Reference('serializer'),
+            ]
+        );
         $definition->setPublic(false);
         $definition->addTag(
             'kernel.event_listener',
@@ -96,14 +114,14 @@ class RequestDtoExtension extends Extension
 
     private function registerNormalizers(ContainerBuilder $container): void
     {
-        $definition = new Definition(RequestDtoExceptionNormalizer::class);
-        $definition->setAutowired(true);
-        $definition->setPublic(false);
-        $definition->setArgument(
-            '$normalizer',
-            new Reference('serializer.normalizer.constraint_violation_list')
+        $definition = new Definition(
+            RequestDtoExceptionNormalizer::class,
+            [
+                new Reference('serializer.normalizer.constraint_violation_list'),
+                '%kernel.debug%',
+            ]
         );
-        $definition->setArgument('$debug', '%kernel.debug%');
+        $definition->setPublic(false);
         $definition->addTag(
             'serializer.normalizer',
             [

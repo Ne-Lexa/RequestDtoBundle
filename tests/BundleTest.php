@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nelexa\RequestDtoBundle\Tests;
 
+use Nelexa\RequestDtoBundle\Examples\Dto\UnsupportObjectRequest;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -39,6 +40,7 @@ final class BundleTest extends KernelTestCase
         }
 
         $response = $kernel->handle($request);
+
         self::assertSame($response->getStatusCode(), $responseStatusCode);
         self::assertNotFalse($response->getContent());
         self::assertSame($contentType, $response->headers->get('Content-Type'));
@@ -962,6 +964,28 @@ final class BundleTest extends KernelTestCase
 
         if ($kernel->isDebug()) {
             self::assertSame($json['class'], HttpException::class);
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testUnsupportRequestDtoTransform(): void
+    {
+        $kernel = self::bootKernel();
+
+        $request = Request::create('/unsupport');
+        $request->headers->set('Accept', 'application/json');
+
+        $response = $kernel->handle($request);
+        $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+
+        self::assertSame($response->getStatusCode(), 500);
+        self::assertSame($json['status'], 500);
+        self::assertSame($json['detail'], 'Class ' . UnsupportObjectRequest::class . ' is not supported.');
+
+        if ($kernel->isDebug()) {
+            self::assertSame($json['class'], \RuntimeException::class);
         }
     }
 }

@@ -7,6 +7,7 @@ namespace Nelexa\RequestDtoBundle\Examples\App;
 use Nelexa\RequestDtoBundle\Examples\Dto\LimitQueryRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\ObjectFromRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\SearchQueryRequest;
+use Nelexa\RequestDtoBundle\Examples\Dto\UnsupportObjectRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\UserRegistrationRequest;
 use Nelexa\RequestDtoBundle\Examples\Dto\UserTokenRequest;
 use Nelexa\RequestDtoBundle\RequestDtoBundle;
@@ -49,6 +50,9 @@ class AppKernel extends Kernel
         $c->setParameter('locale', 'en');
     }
 
+    /**
+     * @noinspection PhpDeprecationInspection RouteCollectionBuilder deprecated in symfony 5.1
+     */
     protected function configureRoutes(RouteCollectionBuilder $routes): void
     {
         $routes->add('/register', 'kernel::registration');
@@ -66,6 +70,7 @@ class AppKernel extends Kernel
             ->setMethods(['POST']);
         $routes->add('/construct/request/exception', 'kernel::constructRequestExceptionAction')
             ->setMethods(['POST']);
+        $routes->add('/unsupport', 'kernel::unsupportObjectTypeAction');
     }
 
     /**
@@ -242,5 +247,10 @@ class AppKernel extends Kernel
             $request,
             $dto
         );
+    }
+
+    public function unsupportObjectTypeAction(UnsupportObjectRequest $dto): Response
+    {
+        return new Response();
     }
 }

@@ -4,32 +4,33 @@ declare(strict_types=1);
 
 namespace Nelexa\RequestDtoBundle\ArgumentResolver;
 
+use Nelexa\RequestDtoBundle\Dto\RequestDtoInterface;
+use Nelexa\RequestDtoBundle\Transform\RequestDtoTransform;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-abstract class AbstractObjectValueResolver implements ArgumentValueResolverInterface
+final class RequestDtoValueResolver implements ArgumentValueResolverInterface
 {
-    protected SerializerInterface $serializer;
+    private RequestDtoTransform $transformer;
 
-    protected ValidatorInterface $validator;
+    private ValidatorInterface $validator;
 
-    /**
-     * AbstractObjectValueResolver constructor.
-     */
-    public function __construct(SerializerInterface $serializer, ValidatorInterface $validator)
+    public function __construct(RequestDtoTransform $transformer, ValidatorInterface $validator)
     {
-        $this->serializer = $serializer;
+        $this->transformer = $transformer;
         $this->validator = $validator;
     }
 
-    abstract protected function serialize(Request $request, ArgumentMetadata $argument, string $format): object;
+    public function supports(Request $request, ArgumentMetadata $argument): bool
+    {
+        return is_a($argument->getType(), RequestDtoInterface::class, true);
+    }
 
-    protected function getSerializeFormat(Request $request): string
+    private function getSerializeFormat(Request $request): string
     {
         static $supportFormats = ['json', 'xml'];
         static $defaultFormat = 'json';
@@ -51,7 +52,7 @@ abstract class AbstractObjectValueResolver implements ArgumentValueResolverInter
         $format = $this->getSerializeFormat($request);
 
         try {
-            $obj = $this->serialize($request, $argument, $format);
+            $obj = $this->transformer->transform($request, $argument->getType(), $format);
         } catch (\TypeError | NotEncodableValueException $e) {
             $problemMimeType = 'application/problem+' . $format;
 
