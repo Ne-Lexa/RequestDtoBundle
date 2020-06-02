@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Nelexa\RequestDtoBundle\Dto;
 
-interface QueryObjectInterface extends RequestDtoInterface
+/**
+ * @internal
+ */
+interface RequestDtoInterface
 {
 }
