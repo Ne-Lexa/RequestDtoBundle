@@ -77,12 +77,12 @@ jobs:
             -
                 name: Run tests with phpunit
                 if:   env.PHPUNIT_COVERAGE == 0
-                run:  vendor/bin/phpunit -v
+                run:  vendor/bin/simple-phpunit -v -c phpunit.xml.dist
 
             -
                 name: Run tests with phpunit and coverage
                 if:   env.PHPUNIT_COVERAGE == 1
-                run:  vendor/bin/phpunit -v --coverage-clover=coverage.clover
+                run:  vendor/bin/simple-phpunit -v -c phpunit.xml.dist --coverage-clover=coverage.clover
 
             -
                 name: Upload code coverage scrutinizer
