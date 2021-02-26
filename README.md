@@ -1,4 +1,4 @@
-<h1 align="center"><img src="logo.png" alt="PhpZip" width="250" height="40"></h1>
+<h1 align="center"><img src="logo.svg" alt="RequestDtoBundle" width="350" height="81"></h1>
 
 # RequestDtoBundle
 
