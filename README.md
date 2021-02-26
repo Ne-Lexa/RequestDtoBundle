@@ -1,3 +1,5 @@
+<h1 align="center"><img src="logo.png" alt="PhpZip" width="250" height="40"></h1>
+
 # RequestDtoBundle
 
 This Symfony Bundle provides request objects support for Symfony controller actions.
