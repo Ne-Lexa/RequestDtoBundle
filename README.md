@@ -1,3 +1,5 @@
+<h1 align="center"><img src="logo.svg" alt="RequestDtoBundle" width="350" height="81"></h1>
+
 # RequestDtoBundle
 
 This Symfony Bundle provides request objects support for Symfony controller actions.
