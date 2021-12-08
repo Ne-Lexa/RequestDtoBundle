@@ -14,8 +14,11 @@ jobs:
 
         strategy:
             matrix:
-                os: ['ubuntu-latest']
-                php: ['7.4', '8.0']
+                os:
+                    - 'ubuntu-latest'
+                php:
+                    - '7.4'
+                    - '8.0'
                 symfony_version:
                     - '5.1.*'
                     - '5.2.*'
