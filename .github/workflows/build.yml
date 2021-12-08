@@ -19,15 +19,18 @@ jobs:
                 php:
                     - '7.4'
                     - '8.0'
+                    - '8.1'
                 symfony_version:
                     - '5.1.*'
                     - '5.2.*'
                     - '5.3.*'
                     - '5.4.*'
-                include:
-                    - symfony_version: '5.3.*'
+                exclude:
+                    - os: 'ubuntu-latest'
+                      symfony_version: '5.1.*'
                       php: '8.1'
-                    - symfony_version: '5.4.*'
+                    - os: 'ubuntu-latest'
+                      symfony_version: '5.2.*'
                       php: '8.1'
 
         runs-on: ${{ matrix.os }}
