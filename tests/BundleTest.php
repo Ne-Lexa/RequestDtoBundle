@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Nelexa\RequestDtoBundle\Tests;
 
-use Nelexa\RequestDtoBundle\Examples\Dto\UnsupportObjectRequest;
+use Nelexa\RequestDtoBundle\Tests\App\Request\UnsupportObjectRequest;
+use Nelexa\RequestDtoBundle\Tests\App\Request\UploadFileDto;
+use Nelexa\RequestDtoBundle\Tests\App\TestingKernel;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @internal
@@ -16,11 +20,45 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 final class BundleTest extends KernelTestCase
 {
+    protected static function getKernelClass(): string
+    {
+        return TestingKernel::class;
+    }
+
+    public function testDenormalizeFile(): void
+    {
+        self::bootKernel();
+
+        if (method_exists(self::class, 'getContainer')) {
+            $container = self::getContainer();
+        } else {
+            /** @noinspection PhpDeprecationInspection */
+            $container = self::$container;
+        }
+        $serializer = $container->get(SerializerInterface::class);
+        self::assertNotNull($serializer);
+
+        $uploadFile = [
+            'file' => new UploadedFile(
+                __FILE__,
+                basename(__FILE__),
+                null,
+                null,
+                true
+            ),
+        ];
+        $denormalize = $serializer->denormalize($uploadFile, UploadFileDto::class, 'json');
+        self::assertInstanceOf(UploadFileDto::class, $denormalize);
+        self::assertSame($uploadFile['file'], $denormalize->file);
+    }
+
     /**
      * @dataProvider provideRequestObjects
      * @dataProvider provideQueryObjects
      * @dataProvider provideRequestObjectBody
      * @dataProvider provideConstructRequestObjects
+     * @dataProvider provideEmbedRequestObjects
+     * @dataProvider provideFileRequestObjects
      *
      * @param mixed $responseData
      *
@@ -41,7 +79,12 @@ final class BundleTest extends KernelTestCase
 
         $response = $kernel->handle($request);
 
-        self::assertSame($response->getStatusCode(), $responseStatusCode);
+        self::assertSame(
+            $response->getStatusCode(),
+            $responseStatusCode,
+            'Status code ' . $response->getStatusCode(
+            ) . ' is not equals ' . $responseStatusCode . '. Contents: ' . $response->getContent()
+        );
         self::assertNotFalse($response->getContent());
         self::assertSame($contentType, $response->headers->get('Content-Type'));
 
@@ -56,11 +99,11 @@ final class BundleTest extends KernelTestCase
         }
     }
 
-    public function provideRequestObjects(): ?\Generator
+    public function provideRequestObjects(): iterable
     {
         yield 'Valid POST RequestObject with ConstraintViolationList' => [
             Request::create(
-                '/register',
+                '/registration',
                 'POST',
                 [
                     'name' => 'John Doe',
@@ -89,7 +132,7 @@ final class BundleTest extends KernelTestCase
 
         yield 'Valid GET RequestObject with ConstraintViolationList' => [
             Request::create(
-                '/register',
+                '/registration',
                 'GET',
                 [
                     'name' => 'John Doe',
@@ -118,7 +161,7 @@ final class BundleTest extends KernelTestCase
 
         yield 'Invalid POST RequestObject with ConstraintViolationList' => [
             Request::create(
-                '/register',
+                '/registration',
                 'POST',
                 [
                     'name' => 'John Doe',
@@ -213,7 +256,98 @@ final class BundleTest extends KernelTestCase
         ];
     }
 
-    public function provideQueryObjects(): ?\Generator
+    public function provideFileRequestObjects(): iterable
+    {
+        yield 'Upload Single File' => [
+            Request::create(
+                '/upload/single',
+                'POST',
+                [
+                    'id' => 5,
+                ],
+                [],
+                [
+                    'file' => new UploadedFile(
+                        'LICENSE',
+                        basename('LICENSE'),
+                        null,
+                        null,
+                        true
+                    ),
+                ]
+            ),
+            [
+                'Content-Type' => 'multipart/form-data',
+                'Accept' => 'application/json',
+            ],
+            400,
+            'application/problem+json',
+            [
+                'type' => 'https://tools.ietf.org/html/rfc7807',
+                'title' => 'Validation Failed',
+                'detail' => 'file: Please upload a valid EXE or MSI file',
+                'violations' => [
+                    [
+                        'propertyPath' => 'file',
+                        'title' => 'Please upload a valid EXE or MSI file',
+                        'parameters' => [
+                            '{{ file }}' => '"LICENSE"',
+                            '{{ type }}' => '"text/plain"',
+                            '{{ types }}' => '"application/x-ms-dos-executable", "application/x-msdos-program", "application/x-msdownload", "application/x-dosexec", "application/x-msi"',
+                            '{{ name }}' => '"LICENSE"',
+                        ],
+                        'type' => 'urn:uuid:744f00bc-4389-4c74-92de-9a43cde55534',
+                    ],
+                ],
+                'status' => 400,
+            ],
+        ];
+
+        $file = 'LICENSE';
+        yield 'Upload Nested File' => [
+            Request::create(
+                '/upload/nested',
+                'POST',
+                [
+                    'id' => 5,
+                    'dtoFile' => [
+                        'filesize' => 5120,
+                        'mimeType' => 'text/plain',
+                    ],
+                ],
+                [],
+                [
+                    'dtoFile' => [
+                        'file' => new UploadedFile(
+                            $file,
+                            basename($file),
+                            'text/plain',
+                            null,
+                            true
+                        ),
+                    ],
+                ]
+            ),
+            [
+                'Content-Type' => 'multipart/form-data',
+                'Accept' => 'application/json',
+            ],
+            200,
+            'application/json',
+            [
+                'dto' => [
+                    'id' => 5,
+                    'dtoFile' => [
+                        'file' => 'data:text/plain,' . rawurlencode(file_get_contents($file)),
+                        'filesize' => 5120,
+                        'mimeType' => 'text/plain',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    public function provideQueryObjects(): iterable
     {
         yield 'Valid QueryObject with ConstraintViolationList' => [
             Request::create(
@@ -335,7 +469,7 @@ final class BundleTest extends KernelTestCase
     /**
      * @throws \Exception
      */
-    public function provideRequestObjectBody(): ?\Generator
+    public function provideRequestObjectBody(): iterable
     {
         yield 'Valid Request Body with ConstraintViolationList' => [
             Request::create(
@@ -502,7 +636,7 @@ final class BundleTest extends KernelTestCase
         ];
     }
 
-    public function provideConstructRequestObjects()
+    public function provideConstructRequestObjects(): iterable
     {
         yield 'Valid Construct Request Object with ConstraintViolationList' => [
             Request::create(
@@ -688,6 +822,80 @@ final class BundleTest extends KernelTestCase
         ];
     }
 
+    public function provideEmbedRequestObjects(): iterable
+    {
+        yield 'POST request body embed object' => [
+            Request::create(
+                '/root/body',
+                'POST',
+                [],
+                [],
+                [],
+                [],
+                json_encode(
+                    [
+                        'id' => 'object',
+                        'child' => [
+                            'id' => 'child-object',
+                        ],
+                    ],
+                    \JSON_THROW_ON_ERROR
+                ),
+            ),
+            [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ],
+            200,
+            'application/json',
+            [
+                'dto' => [
+                    'id' => 'object',
+                    'child' => [
+                        'id' => 'child-object',
+                    ],
+                ],
+                'errors' => [
+                    'type' => 'https://symfony.com/errors/validation',
+                    'title' => 'Validation Failed',
+                    'violations' => [],
+                ],
+            ],
+        ];
+
+        yield 'POST request form embed object' => [
+            Request::create(
+                '/root/form',
+                'POST',
+                [
+                    'id' => 'object',
+                    'child' => [
+                        'id' => 'child-object',
+                    ],
+                ],
+            ),
+            [
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Accept' => 'application/json',
+            ],
+            200,
+            'application/json',
+            [
+                'dto' => [
+                    'id' => 'object',
+                    'child' => [
+                        'id' => 'child-object',
+                    ],
+                ],
+                'errors' => [
+                    'type' => 'https://symfony.com/errors/validation',
+                    'title' => 'Validation Failed',
+                    'violations' => [],
+                ],
+            ],
+        ];
+    }
+
     /**
      * @throws \Exception
      */
@@ -847,7 +1055,7 @@ final class BundleTest extends KernelTestCase
     public function testNullableConstraintList(string $url, int $statusCode, array $actualData): void
     {
         $kernel = self::bootKernel();
-        $request = Request::create($url, 'GET');
+        $request = Request::create($url);
         $request->headers->set('Accept', 'application/json');
         $response = $kernel->handle($request);
         $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
@@ -856,7 +1064,7 @@ final class BundleTest extends KernelTestCase
         self::assertSame($json, $actualData);
     }
 
-    public function provideNullableConstraintList(): ?\Generator
+    public function provideNullableConstraintList(): iterable
     {
         yield 'Valid query' => [
             '/search-nullable-errors?query=php',

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Nelexa\RequestDtoBundle\Examples\Dto;
+namespace Nelexa\RequestDtoBundle\Tests\App\Request;
 
 use Nelexa\RequestDtoBundle\Dto\RequestObjectInterface;
 

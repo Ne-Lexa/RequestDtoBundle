@@ -4,7 +4,7 @@ on: [ push, pull_request ]
 
 jobs:
     tests:
-        name:    PHP ${{ matrix.php }} Test on ${{ matrix.os }}
+        name: PHP ${{ matrix.php }} / Symfony ${{ matrix.symfony_version }} / ${{ matrix.os }}
 
         env:
             extensions:       mbstring
@@ -15,10 +15,23 @@ jobs:
         strategy:
             matrix:
                 os:
-                    - ubuntu-latest
+                    - 'ubuntu-latest'
                 php:
                     - '7.4'
                     - '8.0'
+                    - '8.1'
+                symfony_version:
+                    - '5.1.*'
+                    - '5.2.*'
+                    - '5.3.*'
+                    - '5.4.*'
+                exclude:
+                    - os: 'ubuntu-latest'
+                      symfony_version: '5.1.*'
+                      php: '8.1'
+                    - os: 'ubuntu-latest'
+                      symfony_version: '5.2.*'
+                      php: '8.1'
 
         runs-on: ${{ matrix.os }}
 
@@ -28,31 +41,31 @@ jobs:
                 uses: actions/checkout@v2
 
             -
-                name: Install PHP with extensions
+                name: Setup PHP
                 uses: shivammathur/setup-php@v2
                 with:
                     php-version: ${{ matrix.php }}
                     extensions:  ${{ env.extensions }}
                     coverage:    pcov
                     ini-values:  ${{ env.PHP_INI }}
-                    tools:       composer:v2
+                    tools:       composer:v2, flex
 
-            -
-                name: Determine composer cache directory
-                run:  echo "COMPOSER_CACHE_DIR=$(composer config cache-dir)" >> $GITHUB_ENV
+#            -
+#                name: Determine composer cache directory
+#                run:  echo "COMPOSER_CACHE_DIR=$(composer config cache-dir)" >> $GITHUB_ENV
 
             -
                 name: Set coverage args
                 if:   matrix.php == '7.4'
                 run:  echo "PHPUNIT_COVERAGE=1" >> $GITHUB_ENV
 
-            -
-                name: Cache composer dependencies
-                uses: actions/cache@v2
-                with:
-                    path:         ${{ env.COMPOSER_CACHE_DIR }}
-                    key:          php${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
-                    restore-keys: php${{ matrix.php }}-composer-
+#            -
+#                name: Cache composer dependencies
+#                uses: actions/cache@v2
+#                with:
+#                    path:         ${{ env.COMPOSER_CACHE_DIR }}
+#                    key:          php${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
+#                    restore-keys: php${{ matrix.php }}-composer-
 
             -
                 name: Check PHP Version
@@ -72,6 +85,8 @@ jobs:
 
             -
                 name: Install dependencies with composer
+                env:
+                    SYMFONY_REQUIRE: ${{ matrix.symfony_version }}
                 run:  composer update --prefer-dist --no-interaction --no-progress --optimize-autoloader --ansi
 
             -

@@ -44,16 +44,13 @@ final class RequestDtoValueResolver implements ArgumentValueResolverInterface
         return $format;
     }
 
-    /**
-     * @return iterable
-     */
-    public function resolve(Request $request, ArgumentMetadata $argument)
+    public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         $format = $this->getSerializeFormat($request);
 
         try {
             $obj = $this->transformer->transform($request, $argument->getType(), $format);
-        } catch (\TypeError | NotEncodableValueException $e) {
+        } catch (\TypeError|NotEncodableValueException $e) {
             $problemMimeType = 'application/problem+' . $format;
 
             throw new HttpException(
