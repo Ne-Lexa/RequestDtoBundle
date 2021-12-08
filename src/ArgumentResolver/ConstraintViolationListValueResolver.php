@@ -18,10 +18,7 @@ final class ConstraintViolationListValueResolver implements ArgumentValueResolve
         return is_a($argument->getType(), ConstraintViolationListInterface::class, true);
     }
 
-    /**
-     * @return iterable
-     */
-    public function resolve(Request $request, ArgumentMetadata $argument)
+    public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         /** @var ConstraintViolationListInterface|null $errorsQueue */
         $violationList = $request->attributes->get(self::REQUEST_ATTR_KEY);
@@ -30,7 +27,7 @@ final class ConstraintViolationListValueResolver implements ArgumentValueResolve
             throw new \InvalidArgumentException(
                 sprintf(
                     'The action argument "%s \$%s" is required.',
-                    (string) $argument->getType(),
+                    $argument->getType(),
                     $argument->getName()
                 )
             );

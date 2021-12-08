@@ -10,23 +10,26 @@
     "license": "MIT",
     "require": {
         "php": "^7.4 | ^8.0",
-        "symfony/dependency-injection": "^5.0",
-        "symfony/http-kernel": "^5.0",
-        "symfony/property-access": "^5.0",
-        "symfony/property-info": "^5.0",
-        "symfony/serializer": "^5.0",
-        "symfony/validator": "^5.0"
+        "symfony/dependency-injection": "^5.1",
+        "symfony/http-kernel": "^5.1",
+        "symfony/property-access": "^5.1",
+        "symfony/property-info": "^5.1",
+        "symfony/serializer": "^5.1",
+        "symfony/validator": "^5.1"
     },
     "require-dev": {
         "ext-json": "*",
         "ext-simplexml": "*",
         "doctrine/annotations": "^1.10",
-        "symfony/framework-bundle": "^5.0",
-        "symfony/test-pack": "^1.0",
-        "symfony/var-dumper": "^5.0"
+        "symfony/browser-kit": "^5.1",
+        "symfony/css-selector": "^5.1",
+        "symfony/framework-bundle": "^5.1",
+        "symfony/mime": "^5.1",
+        "symfony/phpunit-bridge": "^5.1",
+        "symfony/var-dumper": "^5.1"
     },
     "conflict": {
-        "symfony/framework-bundle": "<5.0.0"
+        "symfony/framework-bundle": "<5.1.0 || >=6.0.0"
     },
     "config": {
         "sort-packages": true
@@ -38,14 +41,13 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Nelexa\\RequestDtoBundle\\Tests\\": "tests/",
-            "Nelexa\\RequestDtoBundle\\Examples\\": "examples/"
+            "Nelexa\\RequestDtoBundle\\Tests\\": "tests/"
         }
     },
     "scripts": {
         "test": "vendor/bin/simple-phpunit",
-        "php:fix": "php .php_cs --force",
-        "php:fix:debug": "php .php_cs"
+        "php:fix": "php .php-cs-fixer.php --force",
+        "php:fix:debug": "php .php-cs-fixer.php"
     },
     "suggest": {
         "doctrine/annotations": "For support @Assert annotations"

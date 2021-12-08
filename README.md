@@ -6,19 +6,25 @@ This Symfony Bundle provides request objects support for Symfony controller acti
 
 [![Packagist Version](https://img.shields.io/packagist/v/nelexa/request-dto-bundle)](https://packagist.org/packages/nelexa/request-dto-bundle)
 [![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/nelexa/request-dto-bundle)](https://packagist.org/packages/nelexa/request-dto-bundle)
-![Minimum Symfony Version](https://img.shields.io/badge/Bundle%20for%20Symfony-%5E5.0-blue)
 [![Build Status](https://github.com/Ne-Lexa/RequestDtoBundle/workflows/build/badge.svg)](https://github.com/Ne-Lexa/RequestDtoBundle/actions)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/?branch=master)
 [![Packagist License](https://img.shields.io/packagist/l/nelexa/request-dto-bundle)](https://github.com/Ne-Lexa/RequestDtoBundle/blob/master/LICENSE)
 
-# Installation
+#№ Installation
 Require the bundle with composer:
 ```bash
 composer require nelexa/request-dto-bundle
 ```
 
-# Examples of using
+## Versions & Dependencies
+| Bundle version              | Symfony version | PHP version(s)  |
+|-----------------------------|-----------------|-----------------|
+| 1.0.* <br/>1.1.* <br/>1.2.0 | ^5.0            | ^7.4            |
+| 1.2.1                       | ^5.0            | ^7.4\|^8.0      |
+| 1.3.*                       | ^5.1            | ^7.4\|^8.0\|^8.1 |
+
+## Examples of using
 To specify an object as an argument of a controller action, an object must implement one of 4 interfaces:
 - `\Nelexa\RequestDtoBundle\Dto\QueryObjectInterface` query parameters for GET or HEAD request methods.
 - `\Nelexa\RequestDtoBundle\Dto\RequestObjectInterface` request parameters for POST, PUT or DELETE request methods (ex. Content-Type: application/x-www-form-urlencoded) or query parameters for GET and HEAD request methods.
@@ -152,7 +158,7 @@ Content response:
     ]
 }
 ```
-#### Construct DTO from Request (version 1.1.0+)
+### Construct DTO from Request (version 1.1.0+)
 ```php
 use Nelexa\RequestDtoBundle\Dto\ConstructRequestObjectInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -210,8 +216,8 @@ class AppController extends AbstractController
 }
 ```
 
-# Changelog
+## Changelog
 Changes are documented in the [releases page](https://github.com/Ne-Lexa/RequestDtoBundle/releases).
 
-# License
+## License
 The MIT License (MIT). Please see [LICENSE](LICENSE) for more information.
