@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Nelexa\RequestDtoBundle\Examples\Dto;
+namespace Nelexa\RequestDtoBundle\Tests\App\Request;
 
 use Nelexa\RequestDtoBundle\Dto\ConstructRequestObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,19 +11,19 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class ObjectFromRequest implements ConstructRequestObjectInterface
 {
-    /** @Assert\NotBlank() */
+    /** @Assert\NotBlank */
     private string $string;
 
     /**
-     * @Assert\NotBlank()
+     * @Assert\NotBlank
      * @Assert\Range(min=100, max=500)
      */
     private int $integer;
 
-    /** @Assert\IsTrue() */
+    /** @Assert\IsTrue */
     private bool $boolean;
 
-    /** @Assert\NotBlank() */
+    /** @Assert\NotBlank */
     private float $float;
 
     /** @Assert\NotBlank() */
@@ -35,10 +35,10 @@ class ObjectFromRequest implements ConstructRequestObjectInterface
     public function __construct(Request $request)
     {
         $this->string = (string) $request->request->get('s', '');
-        $this->integer = $request->request->getInt('i', 0);
+        $this->integer = $request->request->getInt('i');
         $this->boolean = $request->request->getBoolean('b', false);
         $this->float = (float) $request->request->get('f', 0);
-        $this->array = (array) $request->request->get('a', []);
+        $this->array = $request->request->all('a');
     }
 
     public function getString(): string

@@ -5,3 +5,4 @@
 *.clover
 /phpunit.xml
 /var
+/tools

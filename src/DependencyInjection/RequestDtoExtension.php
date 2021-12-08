@@ -9,6 +9,7 @@ use Nelexa\RequestDtoBundle\ArgumentResolver\RequestDtoValueResolver;
 use Nelexa\RequestDtoBundle\EventListener\RequestDtoControllerArgumentListener;
 use Nelexa\RequestDtoBundle\EventListener\RequestDtoExceptionListener;
 use Nelexa\RequestDtoBundle\Normalizer\RequestDtoExceptionNormalizer;
+use Nelexa\RequestDtoBundle\Normalizer\UploadedFileDenormalizer;
 use Nelexa\RequestDtoBundle\Transform\RequestDtoTransform;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -122,13 +123,16 @@ class RequestDtoExtension extends Extension
             ]
         );
         $definition->setPublic(false);
-        $definition->addTag(
-            'serializer.normalizer',
-            [
-                'priority' => -885,
-            ]
-        );
-
+        $definition->addTag('serializer.normalizer', [
+            'priority' => -885,
+        ]);
         $container->setDefinition(RequestDtoExceptionNormalizer::class, $definition);
+
+        $definition = new Definition(UploadedFileDenormalizer::class);
+        $definition->setPublic(false);
+        $definition->addTag('serializer.normalizer', [
+            'priority' => -900,
+        ]);
+        $container->setDefinition(UploadedFileDenormalizer::class, $definition);
     }
 }

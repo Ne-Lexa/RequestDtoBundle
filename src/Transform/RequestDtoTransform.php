@@ -22,6 +22,8 @@ class RequestDtoTransform
     }
 
     /**
+     * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
+     *
      * @return QueryObjectInterface|RequestObjectInterface|RequestBodyObjectInterface|ConstructRequestObjectInterface
      */
     public function transform(Request $request, string $className, string $format, array $context = []): object
@@ -39,9 +41,12 @@ class RequestDtoTransform
             );
         } elseif (is_a($className, RequestObjectInterface::class, true)) {
             $dto = $this->serializer->denormalize(
-                $request->isMethod('GET') || $request->isMethod('HEAD') ?
-                    $request->query->all() :
-                    $request->request->all(),
+                $request->isMethod('GET') || $request->isMethod('HEAD')
+                    ? $request->query->all()
+                    : array_merge_recursive(
+                        $request->files->all(),
+                        $request->request->all()
+                    ),
                 $className,
                 $format,
                 $context
