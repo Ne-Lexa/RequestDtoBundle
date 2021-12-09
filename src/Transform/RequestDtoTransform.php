@@ -43,9 +43,9 @@ class RequestDtoTransform
             $dto = $this->serializer->denormalize(
                 $request->isMethod('GET') || $request->isMethod('HEAD')
                     ? $request->query->all()
-                    : array_merge_recursive(
-                        $request->files->all(),
-                        $request->request->all()
+                    : self::recursiveMergeDistinctArray(
+                        $request->request->all(),
+                        $request->files->all()
                     ),
                 $className,
                 $format,
@@ -65,5 +65,20 @@ class RequestDtoTransform
         }
 
         return $dto;
+    }
+
+    private static function recursiveMergeDistinctArray(array $array1, array $array2): array
+    {
+        $merged = $array1;
+
+        foreach ($array2 as $key => $value) {
+            if (\is_array($value) && isset($merged[$key]) && \is_array($merged[$key])) {
+                $merged[$key] = self::recursiveMergeDistinctArray($merged[$key], $value);
+            } else {
+                $merged[$key] = $value;
+            }
+        }
+
+        return $merged;
     }
 }
