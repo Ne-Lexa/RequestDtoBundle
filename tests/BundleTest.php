@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\VarExporter\VarExporter;
 
 /**
  * @internal
@@ -92,6 +93,7 @@ final class BundleTest extends KernelTestCase
             $json = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 
             foreach ($responseData as $key => $value) {
+                self::assertArrayHasKey($key, $json);
                 self::assertSame($json[$key], $value);
             }
         } elseif (\is_string($responseData)) {
@@ -258,6 +260,140 @@ final class BundleTest extends KernelTestCase
 
     public function provideFileRequestObjects(): iterable
     {
+        yield 'Array Files' => [
+            Request::create(
+                '/files/update',
+                'POST',
+                [
+                    'id' => '22',
+                    'files' => [
+                        [
+                            'id' => '23',
+                            'delete' => '0',
+                            'position' => '0',
+                        ],
+                        [
+                            'id' => '28',
+                            'delete' => '0',
+                            'position' => '1',
+                        ],
+                        [
+                            'id' => '24',
+                            'delete' => '1',
+                            'position' => '0',
+                        ],
+                        [
+                            'delete' => '0',
+                            'position' => '2',
+                        ],
+                        [
+                            'id' => '38',
+                            'delete' => '0',
+                            'position' => '3',
+                        ],
+                        [
+                            'id' => '34',
+                            'delete' => '1',
+                            'position' => '0',
+                        ],
+                        [
+                            'delete' => '0',
+                            'position' => '4',
+                        ],
+                        [
+                            'id' => '38',
+                            'delete' => '0',
+                            'position' => '5',
+                        ],
+                    ],
+                ],
+                [],
+                [
+                    'files' => [
+                        3 => [
+                            'file' => new UploadedFile(
+                                'LICENSE',
+                                basename('LICENSE'),
+                                null,
+                                null,
+                                true
+                            ),
+                        ],
+                        6 => [
+                            'file' => new UploadedFile(
+                                'composer.json',
+                                basename('composer.json'),
+                                null,
+                                null,
+                                true
+                            ),
+                        ],
+                    ],
+                ]
+            ),
+            [
+                'Content-Type' => 'multipart/form-data',
+                'Accept' => 'application/json',
+            ],
+            200,
+            'application/json',
+            [
+                'dto' => [
+                    'id' => 22,
+                    'files' => [
+                        [
+                            'id' => 23,
+                            'file' => null,
+                            'delete' => false,
+                            'position' => 0,
+                        ],
+                        [
+                            'id' => 28,
+                            'file' => null,
+                            'delete' => false,
+                            'position' => 1,
+                        ],
+                        [
+                            'id' => 24,
+                            'file' => null,
+                            'delete' => true,
+                            'position' => 0,
+                        ],
+                        [
+                            'id' => null,
+                            'file' => 'data:text/plain,' . rawurlencode(file_get_contents('LICENSE')),
+                            'delete' => false,
+                            'position' => 2,
+                        ],
+                        [
+                            'id' => 38,
+                            'file' => null,
+                            'delete' => false,
+                            'position' => 3,
+                        ],
+                        [
+                            'id' => 34,
+                            'file' => null,
+                            'delete' => true,
+                            'position' => 0,
+                        ],
+                        [
+                            'id' => null,
+                            'file' => 'data:application/json;base64,' . base64_encode(file_get_contents('composer.json')),
+                            'delete' => false,
+                            'position' => 4,
+                        ],
+                        [
+                            'id' => 38,
+                            'file' => null,
+                            'delete' => false,
+                            'position' => 5,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
         yield 'Upload Single File' => [
             Request::create(
                 '/upload/single',
@@ -303,7 +439,6 @@ final class BundleTest extends KernelTestCase
             ],
         ];
 
-        $file = 'LICENSE';
         yield 'Upload Nested File' => [
             Request::create(
                 '/upload/nested',
@@ -319,8 +454,8 @@ final class BundleTest extends KernelTestCase
                 [
                     'dtoFile' => [
                         'file' => new UploadedFile(
-                            $file,
-                            basename($file),
+                            'LICENSE',
+                            basename('LICENSE'),
                             'text/plain',
                             null,
                             true
@@ -338,7 +473,7 @@ final class BundleTest extends KernelTestCase
                 'dto' => [
                     'id' => 5,
                     'dtoFile' => [
-                        'file' => 'data:text/plain,' . rawurlencode(file_get_contents($file)),
+                        'file' => 'data:text/plain,' . rawurlencode(file_get_contents('LICENSE')),
                         'filesize' => 5120,
                         'mimeType' => 'text/plain',
                     ],

@@ -39,6 +39,10 @@ return static function (RoutingConfigurator $routes): void {
         ->controller(App\Controller\UploadNestedFileController::class)
         ->methods(['POST'])
     ;
+    $routes->add('update-files', '/files/update')
+        ->controller(App\Controller\FilesUpdateController::class)
+        ->methods(['POST'])
+    ;
 
     $routes->add('root-body', '/root/body')
         ->controller(App\Controller\RootBodyController::class)
