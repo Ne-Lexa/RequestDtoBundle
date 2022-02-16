@@ -18,11 +18,12 @@ composer require nelexa/request-dto-bundle
 ```
 
 ## Versions & Dependencies
-| Bundle version              | Symfony version | PHP version(s)  |
-|-----------------------------|-----------------|-----------------|
-| 1.0.* <br/>1.1.* <br/>1.2.0 | ^5.0            | ^7.4            |
-| ~1.2.1                      | ^5.0            | ^7.4\|^8.0      |
-| 1.3.*                       | ^5.1            | ^7.4\|^8.0\|^8.1 |
+| Bundle version              | Symfony version | PHP version(s)       |
+|-----------------------------|-----------------|----------------------|
+| 1.0.* <br/>1.1.* <br/>1.2.0 | ^5.0            | ^7.4                 |
+| ~1.2.1                      | ^5.0            | ^7.4 \| ^8.0         |
+| 1.3.0 - 1.3.1               | ^5.1            | ^7.4 \| ^8.0 \| ^8.1 |
+| ~1.3.2                      | ^5.1 \| ^6.0    | ^7.4 \| ^8.0 \| ^8.1 |
 
 ## Examples of using
 To specify an object as an argument of a controller action, an object must implement one of 4 interfaces:
