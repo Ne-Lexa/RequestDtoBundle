@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Nelexa\RequestDtoBundle\Normalizer;
 
 use Nelexa\RequestDtoBundle\Exception\RequestDtoValidationException;
-use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\ConstraintViolationListNormalizer;
 use Symfony\Component\Serializer\Normalizer\ProblemNormalizer;
 
@@ -26,23 +25,21 @@ class RequestDtoExceptionNormalizer extends ProblemNormalizer
     }
 
     /**
-     * @param RequestDtoValidationException $exception
+     * @param RequestDtoValidationException $object
      *
-     * @throws ExceptionInterface
-     *
-     * @return array|\ArrayObject|bool|float|int|string|null
+     * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
      */
-    public function normalize($exception, ?string $format = null, array $context = [])
+    public function normalize($object, ?string $format = null, array $context = []): array
     {
         $context += [
             'type' => 'https://tools.ietf.org/html/rfc7807',
         ];
-        $data = $this->normalizer->normalize($exception->getErrors(), $format, $context);
-        $data['status'] = $exception->getStatusCode();
+        $data = $this->normalizer->normalize($object->getErrors(), $format, $context);
+        $data['status'] = $object->getStatusCode();
 
         if ($this->debug) {
-            $data['class'] = \get_class($exception);
-            $data['trace'] = $exception->getTrace();
+            $data['class'] = \get_class($object);
+            $data['trace'] = $object->getTrace();
         }
 
         return $data;
