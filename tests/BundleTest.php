@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\VarExporter\VarExporter;
 
 /**
  * @internal
