@@ -10,7 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\PropertyAccess\Exception\InvalidArgumentException;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
+use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class RequestDtoValueResolver implements ArgumentValueResolverInterface
@@ -50,24 +52,34 @@ final class RequestDtoValueResolver implements ArgumentValueResolverInterface
 
         try {
             $obj = $this->transformer->transform($request, $argument->getType(), $format);
-        } catch (\TypeError|NotEncodableValueException $e) {
-            $problemMimeType = 'application/problem+' . $format;
-
-            throw new HttpException(
-                400,
-                'Bad Request',
-                $e,
-                [
-                    'Content-Type' => $problemMimeType,
-                ]
+            $request->attributes->set(
+                ConstraintViolationListValueResolver::REQUEST_ATTR_KEY,
+                $this->validator->validate($obj)
             );
+
+            yield $obj;
+
+            return;
+        } catch (\TypeError|NotEncodableValueException $e) {
+            $exception = $e;
+        } catch (NotNormalizableValueException $e) {
+            $previousException = $e->getPrevious();
+
+            if ($previousException instanceof InvalidArgumentException) {
+                $e = $previousException;
+            }
+            $exception = $e;
         }
 
-        $request->attributes->set(
-            ConstraintViolationListValueResolver::REQUEST_ATTR_KEY,
-            $this->validator->validate($obj)
-        );
+        $problemMimeType = 'application/problem+' . $format;
 
-        yield $obj;
+        throw new HttpException(
+            400,
+            'Bad Request',
+            $exception,
+            [
+                'Content-Type' => $problemMimeType,
+            ]
+        );
     }
 }

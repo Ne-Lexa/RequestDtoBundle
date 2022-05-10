@@ -10,26 +10,26 @@
     "license": "MIT",
     "require": {
         "php": "^7.4 | ^8.0",
-        "symfony/dependency-injection": "^5.1 | ^6.0",
-        "symfony/http-kernel": "^5.1 | ^6.0",
-        "symfony/property-access": "^5.1 | ^6.0",
-        "symfony/property-info": "^5.1 | ^6.0",
-        "symfony/serializer": "^5.1 | ^6.0",
-        "symfony/validator": "^5.1 | ^6.0"
+        "symfony/dependency-injection": "^4.4 | ^5.1 | ^6.0",
+        "symfony/http-kernel": "^4.4 | ^5.1 | ^6.0",
+        "symfony/property-access": "^4.4 | ^5.1 | ^6.0",
+        "symfony/property-info": "^4.4 | ^5.1 | ^6.0",
+        "symfony/serializer": "^4.4 | ^5.1 | ^6.0",
+        "symfony/validator": "^4.4 | ^5.1 | ^6.0"
     },
     "require-dev": {
         "ext-json": "*",
         "ext-simplexml": "*",
         "doctrine/annotations": "^1.10",
-        "symfony/browser-kit": "^5.1 | ^6.0",
-        "symfony/css-selector": "^5.1 | ^6.0",
-        "symfony/framework-bundle": "^5.1 | ^6.0",
-        "symfony/mime": "^5.1 | ^6.0",
-        "symfony/phpunit-bridge": "^5.1 | ^6.0",
-        "symfony/var-dumper": "^5.1 | ^6.0"
+        "symfony/browser-kit": "^4.4 | ^5.1 | ^6.0",
+        "symfony/css-selector": "^4.4 | ^5.1 | ^6.0",
+        "symfony/framework-bundle": "^4.4 | ^5.1 | ^6.0",
+        "symfony/mime": "^4.4 | ^5.1 | ^6.0",
+        "symfony/phpunit-bridge": "^4.4 | ^5.1 | ^6.0",
+        "symfony/var-dumper": "^4.4 | ^5.1 | ^6.0"
     },
     "conflict": {
-        "symfony/framework-bundle": "<5.1.0"
+        "symfony/framework-bundle": "<4.4 | 5.0.*"
     },
     "config": {
         "sort-packages": true
