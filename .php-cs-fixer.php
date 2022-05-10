@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * PHP Code Style Fixer (config created for version 3.3.2 (Trinacria)).
+ * PHP Code Style Fixer (config created for version 3.8.0 (BerSzcz against war!)).
  *
  * Use one of the following console commands to just see the
  * changes that will be made.
@@ -116,12 +116,18 @@ $rules = [
     'class_attributes_separation' => true,
 
     /*
-     * Whitespace around the keywords of a class, trait or interfaces
-     * definition should be one space.
+     * Whitespace around the keywords of a class, trait, enum or
+     * interfaces definition should be one space.
      */
     'class_definition' => [
         'single_line' => true,
     ],
+
+    /*
+     * When referencing an internal class it must be written using the
+     * correct casing.
+     */
+    'class_reference_name_casing' => true,
 
     // Namespace must not contain spacing, comments or PHPDoc.
     'clean_namespace' => true,
@@ -179,6 +185,22 @@ $rules = [
      * line.
      */
     'control_structure_continuation_position' => true,
+
+    /*
+     * The first argument of `DateTime::createFromFormat` method must
+     * start with `!`.
+     *
+     * Consider this code:
+     * `DateTime::createFromFormat('Y-m-d', '2022-02-11')`.
+     * What value will be returned? '2022-01-11 00:00:00.0'? No,
+     * actual return value has 'H:i:s' section like '2022-02-11
+     * 16:55:37.0'.
+     * Change 'Y-m-d' to '!Y-m-d', return value will be '2022-01-11
+     * 00:00:00.0'.
+     * So, adding `!` to format string will make return value more
+     * intuitive.
+     */
+    'date_time_create_from_format_call' => true,
 
     /*
      * Class `DateTimeImmutable` should be used instead of `DateTime`.
@@ -455,6 +477,15 @@ $rules = [
         ],
     ],
 
+    /*
+     * Replace `get_class` calls on object variables with class keyword
+     * syntax.
+     *
+     * Risky!
+     * Risky if the `get_class` function is overridden.
+     */
+    'get_class_to_class_keyword' => false,
+
     // Imports or fully qualifies global classes/functions/constants.
     'global_namespace_import' => [
         'import_constants' => false,
@@ -661,8 +692,8 @@ $rules = [
     'native_function_type_declaration_casing' => true,
 
     /*
-     * All instances created with new keyword must be followed by
-     * braces.
+     * All instances created with `new` keyword must (not) be followed
+     * by braces.
      */
     'new_with_braces' => true,
 
@@ -833,6 +864,12 @@ $rules = [
     // PHP single-line arrays should not have trailing comma.
     'no_trailing_comma_in_singleline_array' => true,
 
+    /*
+     * When making a method or function call on a single line there MUST
+     * NOT be a trailing comma after the last argument.
+     */
+    'no_trailing_comma_in_singleline_function_call' => true,
+
     // Remove trailing whitespace at the end of non-blank lines.
     'no_trailing_whitespace' => true,
 
@@ -871,13 +908,15 @@ $rules = [
     ],
 
     /*
-     * A `final` class must not have `final` methods and `private`
-     * methods must not be `final`.
+     * Removes `final` from methods where possible.
      *
      * Risky!
      * Risky when child class overrides a `private` method.
      */
     'no_unneeded_final_method' => true,
+
+    // Imports should not be aliased as the same name.
+    'no_unneeded_import_alias' => true,
 
     /*
      * In function arguments there must not be arguments with default
@@ -979,7 +1018,7 @@ $rules = [
      */
     'operator_linebreak' => true,
 
-    // Orders the elements of classes/interfaces/traits.
+    // Orders the elements of classes/interfaces/traits/enums.
     'ordered_class_elements' => [
         'order' => [
             'use_trait',
@@ -1543,6 +1582,9 @@ $rules = [
      * blank line after the use statements block.
      */
     'single_line_after_imports' => true,
+
+    // Single-line comments must have proper spacing.
+    'single_line_comment_spacing' => true,
 
     /*
      * Single-line comments and multi-line comments with only one line

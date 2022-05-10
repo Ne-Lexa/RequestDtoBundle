@@ -26,10 +26,11 @@ class RequestDtoExceptionNormalizer extends ProblemNormalizer
 
     /**
      * @param RequestDtoValidationException $object
+     * @param mixed|null                    $format
      *
      * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
      */
-    public function normalize($object, ?string $format = null, array $context = []): array
+    public function normalize($object, $format = null, array $context = []): array
     {
         $context += [
             'type' => 'https://tools.ietf.org/html/rfc7807',
@@ -45,7 +46,7 @@ class RequestDtoExceptionNormalizer extends ProblemNormalizer
         return $data;
     }
 
-    public function supportsNormalization($data, ?string $format = null): bool
+    public function supportsNormalization($data, $format = null): bool
     {
         return $data instanceof RequestDtoValidationException;
     }

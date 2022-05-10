@@ -11,7 +11,7 @@ This Symfony Bundle provides request objects support for Symfony controller acti
 [![Code Coverage](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Ne-Lexa/RequestDtoBundle/?branch=master)
 [![Packagist License](https://img.shields.io/packagist/l/nelexa/request-dto-bundle)](https://github.com/Ne-Lexa/RequestDtoBundle/blob/master/LICENSE)
 
-#№ Installation
+# Installation
 Require the bundle with composer:
 ```bash
 composer require nelexa/request-dto-bundle

@@ -38,7 +38,7 @@ class ObjectFromRequest implements ConstructRequestObjectInterface
         $this->integer = $request->request->getInt('i');
         $this->boolean = $request->request->getBoolean('b', false);
         $this->float = (float) $request->request->get('f', 0);
-        $this->array = $request->request->all('a');
+        $this->array = $request->request->all()['a'] ?? [];
     }
 
     public function getString(): string
