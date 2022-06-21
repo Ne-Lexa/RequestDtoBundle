@@ -15,6 +15,14 @@ class UploadedFileDenormalizer implements DenormalizerInterface, CacheableSuppor
         return true;
     }
 
+    /**
+     * @param mixed  $data    Data to restore
+     * @param string $type    The expected class to instantiate
+     * @param string $format  Format the given data was extracted from
+     * @param array  $context Options available to the denormalizer
+     *
+     * @return mixed Data
+     */
     public function denormalize($data, $type, $format = null, array $context = [])
     {
         return $data;
